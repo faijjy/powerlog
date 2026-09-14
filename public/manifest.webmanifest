@@ -1,0 +1,17 @@
+{
+  "name": "PowerLog",
+  "short_name": "PowerLog",
+  "description": "Electrician site materials and daily reports",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f4f6f8",
+  "theme_color": "#1e3a5f",
+  "icons": [
+    {
+      "src": "/icon",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
