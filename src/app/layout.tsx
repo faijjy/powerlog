@@ -13,9 +13,9 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "PowerLog — Electrician Site Reports",
+  title: "PowerLog — Site materials & daily reports for electricians",
   description:
-    "Manage site materials, track work, and share daily reports with WhatsApp and PDF.",
+    "Log site materials, track required vs used, create daily work reports, and share on WhatsApp or PDF. OTP login for electricians and company admins.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,

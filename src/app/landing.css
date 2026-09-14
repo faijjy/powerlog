@@ -1,0 +1,75 @@
+@keyframes pl-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pl-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(12px, -10px, 0) scale(1.03);
+  }
+}
+
+@keyframes pl-pulse-line {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.9;
+  }
+}
+
+@keyframes pl-draw {
+  from {
+    stroke-dashoffset: 240;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.landing-hero-copy {
+  animation: pl-fade-up 0.7s ease-out both;
+}
+
+.landing-hero-cta {
+  animation: pl-fade-up 0.7s ease-out 0.15s both;
+}
+
+.landing-hero-visual {
+  animation: pl-fade-up 0.8s ease-out 0.2s both;
+}
+
+.landing-drift {
+  animation: pl-drift 14s ease-in-out infinite;
+}
+
+.landing-pulse {
+  animation: pl-pulse-line 3.2s ease-in-out infinite;
+}
+
+.landing-draw {
+  stroke-dasharray: 240;
+  animation: pl-draw 1.6s ease-out 0.4s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero-copy,
+  .landing-hero-cta,
+  .landing-hero-visual,
+  .landing-drift,
+  .landing-pulse,
+  .landing-draw {
+    animation: none !important;
+  }
+}
