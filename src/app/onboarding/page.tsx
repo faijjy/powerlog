@@ -1,12 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, Field, Input } from "@/components/ui";
 
 export default function OnboardingPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<"choose" | "create" | "join">("choose");
   const [companyName, setCompanyName] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -39,8 +37,8 @@ export default function OnboardingPage() {
         p_display_name: displayName.trim() || companyName.trim(),
       });
       if (err) throw err;
-      router.replace("/admin");
-      router.refresh();
+      // Hard navigate so we don't get stuck on the loading button
+      window.location.assign("/admin");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create company");
       setLoading(false);
@@ -57,8 +55,7 @@ export default function OnboardingPage() {
         p_invite_code: inviteCode.trim(),
       });
       if (err) throw err;
-      router.replace("/app");
-      router.refresh();
+      window.location.assign("/app");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to join company");
       setLoading(false);
