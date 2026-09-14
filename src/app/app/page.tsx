@@ -30,21 +30,25 @@ export default async function AppDashboardPage() {
   return (
     <AppShell
       right={
-        profile.role === "admin" ? (
-          <Link href="/admin" className="text-xs font-semibold text-primary">
-            Admin
+        <div className="flex items-center gap-2">
+          {profile.role === "admin" ? (
+            <Link href="/admin" className="text-xs font-semibold text-primary">
+              Admin
+            </Link>
+          ) : null}
+          <Link href="/" className="text-xs font-semibold text-muted">
+            Home
           </Link>
-        ) : null
+        </div>
       }
     >
       <div className="mb-6">
         <p className="text-sm text-muted">{greeting()}</p>
-        <h1 className="font-display text-2xl font-bold">
-          {profile.full_name?.split(" ")[0] || "Electrician"}
-        </h1>
-        {company && (
-          <p className="text-sm text-muted">{company.display_name || company.name}</p>
-        )}
+        <h1 className="font-display text-2xl font-bold">Electrician Dashboard</h1>
+        <p className="mt-1 text-sm text-muted">
+          {profile.full_name || "Electrician"}
+          {company ? ` · ${company.display_name || company.name}` : ""}
+        </p>
       </div>
 
       <SectionTitle>Today&apos;s Sites</SectionTitle>

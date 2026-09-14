@@ -34,12 +34,25 @@ export default async function AdminOverviewPage() {
   const todaySites = activeSites.filter((s) => s.site_date === today);
 
   return (
-    <AppShell nav="admin">
+    <AppShell
+      nav="admin"
+      right={
+        <div className="flex items-center gap-2">
+          <Link href="/app" className="text-xs font-semibold text-primary">
+            Field app
+          </Link>
+          <Link href="/" className="text-xs font-semibold text-muted">
+            Home
+          </Link>
+        </div>
+      }
+    >
       <div className="mb-6">
-        <p className="text-sm text-muted">Admin</p>
-        <h1 className="font-display text-2xl font-bold">
+        <p className="text-sm text-muted">Company admin</p>
+        <h1 className="font-display text-2xl font-bold">Admin Dashboard</h1>
+        <p className="mt-1 font-medium text-foreground">
           {company?.display_name || company?.name || "Company"}
-        </h1>
+        </p>
         <p className="mt-1 text-sm text-muted">
           Invite code:{" "}
           <span className="font-semibold tracking-widest text-primary">
@@ -72,7 +85,7 @@ export default async function AdminOverviewPage() {
           href="/app"
           className="flex-1 rounded-xl border border-border bg-card py-3 text-center text-sm font-semibold text-primary"
         >
-          Electrician App
+          Electrician Dashboard
         </Link>
         <Link
           href="/admin/library"

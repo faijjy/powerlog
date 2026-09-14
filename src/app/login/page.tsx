@@ -29,7 +29,7 @@ export default function LoginPage() {
         .eq("id", user.id)
         .maybeSingle();
       if (profile?.company_id) {
-        setExistingHref(profile.role === "admin" ? "/admin" : "/app");
+        setExistingHref("/dashboard");
       } else {
         setExistingHref("/onboarding");
       }
@@ -73,7 +73,7 @@ export default function LoginPage() {
       setVerifying(false);
       return;
     }
-    window.location.assign("/");
+    window.location.assign("/dashboard");
   }
 
   async function signInWithGoogle() {

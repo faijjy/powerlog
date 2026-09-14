@@ -41,7 +41,9 @@ export async function updateSession(request: NextRequest) {
 
   // Only gate the app areas — never force home / welcome / login away
   const isAppArea =
-    path.startsWith("/app") || path.startsWith("/admin");
+    path.startsWith("/app") ||
+    path.startsWith("/admin") ||
+    path.startsWith("/dashboard");
 
   if (!user && isAppArea) {
     const redirectUrl = request.nextUrl.clone();

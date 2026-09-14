@@ -37,6 +37,16 @@ export async function requireAdmin() {
   return ctx;
 }
 
+/** Where to send a user after login */
+export function resolveAppHome(profile: {
+  company_id: string | null;
+  role: string | null;
+} | null) {
+  if (!profile?.company_id || !profile.role) return "/onboarding";
+  if (profile.role === "admin") return "/admin";
+  return "/app";
+}
+
 export async function getCompany(companyId: string) {
   const supabase = await createClient();
   const { data } = await supabase
