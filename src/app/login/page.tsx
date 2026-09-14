@@ -6,16 +6,57 @@ import { Button, Card, Field, Input } from "@/components/ui";
 import Link from "next/link";
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false);
-  const [emailLoading, setEmailLoading] = useState(false);
+  const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [sending, setSending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  async function signInWithGoogle() {
-    setLoading(true);
+  async function sendOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setSending(true);
     setError(null);
     setInfo(null);
+    const supabase = createClient();
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: {
+        shouldCreateUser: true,
+      },
+    });
+    setSending(false);
+    if (err) {
+      setError(err.message);
+      return;
+    }
+    setStep("otp");
+    setInfo("Enter the 6-digit code sent to your email. No password needed.");
+  }
+
+  async function verifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    setVerifying(true);
+    setError(null);
+    const supabase = createClient();
+    const { error: err } = await supabase.auth.verifyOtp({
+      email: email.trim(),
+      token: otp.trim(),
+      type: "email",
+    });
+    if (err) {
+      setError(err.message);
+      setVerifying(false);
+      return;
+    }
+    window.location.assign("/");
+  }
+
+  async function signInWithGoogle() {
+    setGoogleLoading(true);
+    setError(null);
     const supabase = createClient();
     const origin =
       process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
@@ -27,30 +68,8 @@ export default function LoginPage() {
     });
     if (err) {
       setError(err.message);
-      setLoading(false);
+      setGoogleLoading(false);
     }
-  }
-
-  async function signInWithEmail(e: React.FormEvent) {
-    e.preventDefault();
-    setEmailLoading(true);
-    setError(null);
-    setInfo(null);
-    const supabase = createClient();
-    const origin =
-      process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-    const { error: err } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${origin}/auth/callback`,
-      },
-    });
-    setEmailLoading(false);
-    if (err) {
-      setError(err.message);
-      return;
-    }
-    setInfo("Check your email for the magic link to sign in.");
   }
 
   return (
@@ -61,41 +80,105 @@ export default function LoginPage() {
       <Card>
         <h1 className="font-display text-xl font-semibold">Sign in</h1>
         <p className="mt-1 text-sm text-muted">
-          Continue as admin or electrician.
+          OTP login — no password. Stay signed in for months.
         </p>
-        <Button
-          className="mt-6 w-full"
-          disabled={loading}
-          onClick={signInWithGoogle}
-        >
-          {loading ? "Redirecting…" : "Continue with Google"}
-        </Button>
+
+        {step === "email" ? (
+          <form className="mt-6" onSubmit={sendOtp}>
+            <Field label="Email">
+              <Input
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+            </Field>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={sending || !email.trim()}
+            >
+              {sending ? "Sending code…" : "Send OTP code"}
+            </Button>
+          </form>
+        ) : (
+          <form className="mt-6" onSubmit={verifyOtp}>
+            <p className="mb-3 text-sm text-muted">
+              Code sent to <span className="font-medium text-foreground">{email}</span>
+            </p>
+            <Field label="6-digit OTP">
+              <Input
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={8}
+                required
+                autoComplete="one-time-code"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                placeholder="123456"
+                className="tracking-[0.35em] text-center text-lg"
+              />
+            </Field>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={verifying || otp.trim().length < 6}
+            >
+              {verifying ? "Verifying…" : "Verify & sign in"}
+            </Button>
+            <Button
+              className="mt-2 w-full"
+              type="button"
+              variant="ghost"
+              disabled={sending}
+              onClick={() => {
+                setStep("email");
+                setOtp("");
+                setInfo(null);
+                setError(null);
+              }}
+            >
+              Change email
+            </Button>
+            <Button
+              className="mt-1 w-full"
+              type="button"
+              variant="secondary"
+              disabled={sending}
+              onClick={async () => {
+                setSending(true);
+                setError(null);
+                const supabase = createClient();
+                const { error: err } = await supabase.auth.signInWithOtp({
+                  email: email.trim(),
+                  options: { shouldCreateUser: true },
+                });
+                setSending(false);
+                if (err) setError(err.message);
+                else setInfo("New code sent.");
+              }}
+            >
+              {sending ? "Sending…" : "Resend code"}
+            </Button>
+          </form>
+        )}
 
         <div className="my-5 flex items-center gap-3 text-xs text-muted">
           <div className="h-px flex-1 bg-border" />
-          or email magic link
+          or
           <div className="h-px flex-1 bg-border" />
         </div>
 
-        <form onSubmit={signInWithEmail}>
-          <Field label="Email">
-            <Input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-            />
-          </Field>
-          <Button
-            className="w-full"
-            variant="secondary"
-            type="submit"
-            disabled={emailLoading || !email.trim()}
-          >
-            {emailLoading ? "Sending…" : "Send magic link"}
-          </Button>
-        </form>
+        <Button
+          className="w-full"
+          variant="secondary"
+          disabled={googleLoading}
+          onClick={signInWithGoogle}
+        >
+          {googleLoading ? "Redirecting…" : "Continue with Google"}
+        </Button>
 
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}
         {info && <p className="mt-3 text-sm text-success">{info}</p>}

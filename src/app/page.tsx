@@ -51,10 +51,10 @@ export default async function HomePage() {
 
       <Card className="mt-10 space-y-3">
         <Link href="/login" className="block">
-          <Button className="w-full">Sign in with Google</Button>
+          <Button className="w-full">Sign in with OTP</Button>
         </Link>
         <p className="text-center text-xs text-muted">
-          Company admins track the team. Electricians run the site.
+          No password. Company admins track the team. Electricians run the site.
         </p>
       </Card>
     </div>
