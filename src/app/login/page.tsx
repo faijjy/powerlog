@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, Field, Input } from "@/components/ui";
 import Link from "next/link";
@@ -14,6 +14,28 @@ export default function LoginPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  const [existingHref, setExistingHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function check() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_id, role")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.company_id) {
+        setExistingHref(profile.role === "admin" ? "/admin" : "/app");
+      } else {
+        setExistingHref("/onboarding");
+      }
+    }
+    check();
+  }, []);
 
   async function sendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -33,7 +55,7 @@ export default function LoginPage() {
       return;
     }
     setStep("otp");
-    setInfo("Enter the 6-digit code sent to your email. No password needed.");
+    setInfo("Enter the 6-digit code from your email.");
   }
 
   async function verifyOtp(e: React.FormEvent) {
@@ -72,16 +94,42 @@ export default function LoginPage() {
     }
   }
 
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setExistingHref(null);
+  }
+
   return (
     <div className="mx-auto flex min-h-full max-w-lg flex-col justify-center px-4 py-10">
-      <Link href="/" className="mb-8 font-display text-2xl font-bold text-primary">
-        PowerLog
-      </Link>
+      <div className="mb-8 flex items-center justify-between">
+        <Link href="/" className="font-display text-2xl font-bold text-primary">
+          PowerLog
+        </Link>
+        <Link href="/" className="text-sm font-semibold text-muted hover:text-primary">
+          Home
+        </Link>
+      </div>
       <Card>
-        <h1 className="font-display text-xl font-semibold">Sign in</h1>
+        <h1 className="font-display text-xl font-semibold">Log in</h1>
         <p className="mt-1 text-sm text-muted">
-          OTP login — no password. Stay signed in for months.
+          Existing users and new users — same OTP, no password.
         </p>
+
+        {existingHref && (
+          <div className="mt-4 rounded-xl border border-border bg-background p-3">
+            <p className="text-sm text-muted">You are already logged in.</p>
+            <Button
+              className="mt-3 w-full"
+              onClick={() => (window.location.href = existingHref)}
+            >
+              Continue to app
+            </Button>
+            <Button className="mt-2 w-full" variant="secondary" onClick={signOut}>
+              Log out to use another account
+            </Button>
+          </div>
+        )}
 
         {step === "email" ? (
           <form className="mt-6" onSubmit={sendOtp}>
@@ -100,7 +148,7 @@ export default function LoginPage() {
               type="submit"
               disabled={sending || !email.trim()}
             >
-              {sending ? "Sending code…" : "Send OTP code"}
+              {sending ? "Sending code…" : "Log in with OTP"}
             </Button>
           </form>
         ) : (
@@ -126,7 +174,7 @@ export default function LoginPage() {
               type="submit"
               disabled={verifying || otp.trim().length < 6}
             >
-              {verifying ? "Verifying…" : "Verify & sign in"}
+              {verifying ? "Verifying…" : "Verify & log in"}
             </Button>
             <Button
               className="mt-2 w-full"
@@ -177,7 +225,7 @@ export default function LoginPage() {
           disabled={googleLoading}
           onClick={signInWithGoogle}
         >
-          {googleLoading ? "Redirecting…" : "Continue with Google"}
+          {googleLoading ? "Redirecting…" : "Log in with Google"}
         </Button>
 
         {error && <p className="mt-3 text-sm text-danger">{error}</p>}

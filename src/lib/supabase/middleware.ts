@@ -38,55 +38,36 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
-  const isAuthRoute =
-    path.startsWith("/login") || path.startsWith("/auth");
-  const isProtected =
-    path.startsWith("/app") ||
-    path.startsWith("/admin") ||
-    path.startsWith("/onboarding");
 
-  if (!user && isProtected) {
+  // Only gate the app areas — never force home / welcome / login away
+  const isAppArea =
+    path.startsWith("/app") || path.startsWith("/admin");
+
+  if (!user && isAppArea) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", path);
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && path === "/login") {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/";
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  if (user && (path.startsWith("/app") || path.startsWith("/admin") || path === "/" || path.startsWith("/onboarding"))) {
+  if (user && isAppArea) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("company_id, role")
       .eq("id", user.id)
       .maybeSingle();
 
-    // Already onboarded — never keep them on the welcome/setup screen
-    if (profile?.company_id && path.startsWith("/onboarding")) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = profile.role === "admin" ? "/admin" : "/app";
-      return NextResponse.redirect(redirectUrl);
-    }
-
-    if (!profile?.company_id && !path.startsWith("/onboarding") && path !== "/" && !path.startsWith("/welcome")) {
+    if (!profile?.company_id) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/onboarding";
       return NextResponse.redirect(redirectUrl);
     }
 
-    if (path.startsWith("/admin") && profile?.role !== "admin") {
+    if (path.startsWith("/admin") && profile.role !== "admin") {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/app";
       return NextResponse.redirect(redirectUrl);
     }
-  }
-
-  if (user && isAuthRoute && path === "/login") {
-    // already handled
   }
 
   return supabaseResponse;

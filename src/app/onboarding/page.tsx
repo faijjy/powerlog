@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, Field, Input } from "@/components/ui";
 
@@ -12,6 +13,8 @@ export default function OnboardingPage() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [alreadySetUp, setAlreadySetUp] = useState(false);
+  const [appHref, setAppHref] = useState("/app");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -21,7 +24,7 @@ export default function OnboardingPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        window.location.assign("/login");
+        setChecking(false);
         return;
       }
       const { data: profile } = await supabase
@@ -33,8 +36,8 @@ export default function OnboardingPage() {
       if (profile?.full_name) setFullName(profile.full_name);
 
       if (profile?.company_id) {
-        window.location.assign(profile.role === "admin" ? "/admin" : "/app");
-        return;
+        setAlreadySetUp(true);
+        setAppHref(profile.role === "admin" ? "/admin" : "/app");
       }
       setChecking(false);
     }
@@ -89,6 +92,12 @@ export default function OnboardingPage() {
     }
   }
 
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.assign("/login");
+  }
+
   if (checking) {
     return (
       <div className="mx-auto flex min-h-full max-w-lg flex-col items-center justify-center px-4 py-10">
@@ -99,12 +108,41 @@ export default function OnboardingPage() {
 
   return (
     <div className="mx-auto flex min-h-full max-w-lg flex-col px-4 py-10">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <Link href="/" className="font-display text-lg font-bold text-primary">
+          PowerLog
+        </Link>
+        <div className="flex gap-3 text-sm font-semibold">
+          <Link href="/" className="text-muted hover:text-primary">
+            Home
+          </Link>
+          <Link href="/login" className="text-primary">
+            Log in
+          </Link>
+        </div>
+      </div>
+
       <h1 className="font-display text-2xl font-bold text-primary">Welcome</h1>
       <p className="mt-1 text-sm text-muted">
         Create a company (admin) or join with an invite code (electrician).
       </p>
 
-      {mode === "choose" && (
+      {alreadySetUp && (
+        <Card className="mt-6">
+          <p className="font-medium">You already have a company set up.</p>
+          <Button className="mt-4 w-full" onClick={() => (window.location.href = appHref)}>
+            Open app
+          </Button>
+          <Button className="mt-2 w-full" variant="secondary" onClick={signOut}>
+            Log out & log in as someone else
+          </Button>
+          <Link href="/" className="mt-3 block text-center text-sm font-semibold text-primary">
+            Back to home
+          </Link>
+        </Card>
+      )}
+
+      {!alreadySetUp && mode === "choose" && (
         <div className="mt-8 space-y-3">
           <Button className="w-full" onClick={() => setMode("create")}>
             Create Company (Admin)
@@ -112,10 +150,19 @@ export default function OnboardingPage() {
           <Button className="w-full" variant="secondary" onClick={() => setMode("join")}>
             Join with Invite Code
           </Button>
+          <p className="pt-2 text-center text-sm text-muted">
+            Already have an account?{" "}
+            <Link href="/login" className="font-semibold text-primary">
+              Log in
+            </Link>
+          </p>
+          <Button className="w-full" variant="ghost" onClick={signOut}>
+            Not you? Log out
+          </Button>
         </div>
       )}
 
-      {mode === "create" && (
+      {!alreadySetUp && mode === "create" && (
         <Card className="mt-6">
           <Field label="Your name">
             <Input
@@ -152,7 +199,7 @@ export default function OnboardingPage() {
         </Card>
       )}
 
-      {mode === "join" && (
+      {!alreadySetUp && mode === "join" && (
         <Card className="mt-6">
           <Field label="Your name">
             <Input

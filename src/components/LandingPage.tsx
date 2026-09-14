@@ -1,7 +1,13 @@
 import Link from "next/link";
 import "@/app/landing.css";
 
-export function LandingPage() {
+export function LandingPage({
+  signedIn = false,
+  appHref = "/onboarding",
+}: {
+  signedIn?: boolean;
+  appHref?: string;
+}) {
   return (
     <div className="min-h-full bg-[#0b1220] text-white">
       {/* Hero — one composition */}
@@ -28,16 +34,27 @@ export function LandingPage() {
         <div className="absolute -left-20 bottom-10 h-72 w-72 rounded-full bg-primary/40 blur-3xl" />
 
         <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col px-5 pb-10 pt-6 md:px-8">
-          <header className="flex items-center justify-between">
+          <header className="flex items-center justify-between gap-3">
             <p className="font-display text-xl font-bold tracking-tight text-white md:text-2xl">
               Power<span className="text-accent">Log</span>
             </p>
-            <Link
-              href="/login"
-              className="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-accent hover:text-accent"
-            >
-              Sign in
-            </Link>
+            <div className="flex items-center gap-2">
+              {signedIn ? (
+                <Link
+                  href={appHref}
+                  className="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-accent-fg transition hover:brightness-105"
+                >
+                  Open app
+                </Link>
+              ) : (
+                <Link
+                  href="/login"
+                  className="rounded-xl border border-white/20 px-4 py-2 text-sm font-semibold text-white/90 transition hover:border-accent hover:text-accent"
+                >
+                  Log in
+                </Link>
+              )}
+            </div>
           </header>
 
           <div className="mt-10 grid flex-1 items-center gap-10 lg:mt-0 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
@@ -54,21 +71,40 @@ export function LandingPage() {
                 bosses.
               </p>
               <div className="landing-hero-cta mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link
-                  href="/login"
-                  className="inline-flex items-center justify-center rounded-xl bg-accent px-6 py-3.5 text-sm font-bold text-accent-fg transition hover:brightness-105"
-                >
-                  Start free with OTP
-                </Link>
-                <a
-                  href="#how-it-works"
-                  className="inline-flex items-center justify-center rounded-xl border border-white/25 px-6 py-3.5 text-sm font-semibold text-white/90 transition hover:border-white/50"
-                >
-                  See how it works
-                </a>
+                {signedIn ? (
+                  <>
+                    <Link
+                      href={appHref}
+                      className="inline-flex items-center justify-center rounded-xl bg-accent px-6 py-3.5 text-sm font-bold text-accent-fg transition hover:brightness-105"
+                    >
+                      Continue to app
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center rounded-xl border border-white/25 px-6 py-3.5 text-sm font-semibold text-white/90 transition hover:border-white/50"
+                    >
+                      Log in as someone else
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center rounded-xl bg-accent px-6 py-3.5 text-sm font-bold text-accent-fg transition hover:brightness-105"
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="inline-flex items-center justify-center rounded-xl border border-white/25 px-6 py-3.5 text-sm font-semibold text-white/90 transition hover:border-white/50"
+                    >
+                      Create account
+                    </Link>
+                  </>
+                )}
               </div>
               <p className="mt-4 text-xs text-white/45">
-                No password. Sign in with a one-time code. Stay signed in for months.
+                Same OTP screen for log in and new accounts — no password.
               </p>
             </div>
 
@@ -179,7 +215,7 @@ export function LandingPage() {
               href="/login"
               className="mt-8 inline-flex rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-primary-fg transition hover:bg-primary/90"
             >
-              Create your company
+              Log in to create your company
             </Link>
           </div>
           <div className="space-y-4 font-display text-lg text-primary md:text-xl">
@@ -213,14 +249,22 @@ export function LandingPage() {
             Stop rewriting material lists. Start logging once and sharing
             instantly.
           </p>
-          <Link
-            href="/login"
-            className="mt-8 inline-flex rounded-xl bg-accent px-8 py-4 text-sm font-bold text-accent-fg transition hover:brightness-105"
-          >
-            Get started free
-          </Link>
+          <div className="relative mx-auto flex max-w-3xl flex-col items-center text-center sm:flex-row sm:justify-center sm:gap-3">
+            <Link
+              href="/login"
+              className="inline-flex w-full rounded-xl bg-accent px-8 py-4 text-sm font-bold text-accent-fg transition hover:brightness-105 sm:w-auto"
+            >
+              Log in
+            </Link>
+            <Link
+              href="/login"
+              className="mt-3 inline-flex w-full rounded-xl border border-white/25 px-8 py-4 text-sm font-semibold text-white transition hover:border-white/50 sm:mt-0 sm:w-auto"
+            >
+              Create account
+            </Link>
+          </div>
           <p className="mt-4 text-xs text-white/40">
-            OTP sign-in · Mobile-first · WhatsApp ready
+            OTP log in · Mobile-first · WhatsApp ready
           </p>
         </div>
       </section>
