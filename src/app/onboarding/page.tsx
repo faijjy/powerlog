@@ -27,17 +27,26 @@ export default function OnboardingPage() {
         setChecking(false);
         return;
       }
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("company_id, role, full_name")
         .eq("id", user.id)
         .maybeSingle();
 
+      if (profileError) {
+        setError(profileError.message);
+        setChecking(false);
+        return;
+      }
+
       if (profile?.full_name) setFullName(profile.full_name);
 
       if (profile?.company_id) {
-        setAlreadySetUp(true);
-        setAppHref(profile.role === "admin" ? "/admin" : "/app");
+        // Go straight to the right dashboard
+        window.location.assign(
+          profile.role === "admin" ? "/admin" : "/app"
+        );
+        return;
       }
       setChecking(false);
     }
@@ -116,7 +125,10 @@ export default function OnboardingPage() {
           <Link href="/" className="text-muted hover:text-primary">
             Home
           </Link>
-          <Link href="/login" className="text-primary">
+          <Link href="/dashboard" className="text-primary">
+            Dashboard
+          </Link>
+          <Link href="/login" className="text-muted hover:text-primary">
             Log in
           </Link>
         </div>

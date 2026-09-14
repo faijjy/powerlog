@@ -161,6 +161,11 @@ as $$
   );
 $$;
 
+-- Authenticated must EXECUTE helpers used inside RLS policies
+grant execute on function public.current_company_id() to authenticated;
+grant execute on function public.current_user_role() to authenticated;
+grant execute on function public.is_company_admin() to authenticated;
+
 -- Auto-create profile on signup
 create or replace function public.handle_new_user()
 returns trigger
