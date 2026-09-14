@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button, Card, Field, Input } from "@/components/ui";
 
@@ -11,7 +11,35 @@ export default function OnboardingPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function checkExisting() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.assign("/login");
+        return;
+      }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_id, role, full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (profile?.full_name) setFullName(profile.full_name);
+
+      if (profile?.company_id) {
+        window.location.assign(profile.role === "admin" ? "/admin" : "/app");
+        return;
+      }
+      setChecking(false);
+    }
+    checkExisting();
+  }, []);
 
   async function saveName() {
     if (!fullName.trim()) return;
@@ -37,7 +65,6 @@ export default function OnboardingPage() {
         p_display_name: displayName.trim() || companyName.trim(),
       });
       if (err) throw err;
-      // Hard navigate so we don't get stuck on the loading button
       window.location.assign("/admin");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to create company");
@@ -60,6 +87,14 @@ export default function OnboardingPage() {
       setError(e instanceof Error ? e.message : "Failed to join company");
       setLoading(false);
     }
+  }
+
+  if (checking) {
+    return (
+      <div className="mx-auto flex min-h-full max-w-lg flex-col items-center justify-center px-4 py-10">
+        <p className="text-sm text-muted">Loading…</p>
+      </div>
+    );
   }
 
   return (

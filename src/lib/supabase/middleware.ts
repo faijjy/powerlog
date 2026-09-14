@@ -58,14 +58,21 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && (path.startsWith("/app") || path.startsWith("/admin") || path === "/")) {
+  if (user && (path.startsWith("/app") || path.startsWith("/admin") || path === "/" || path.startsWith("/onboarding"))) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("company_id, role")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (!profile?.company_id && !path.startsWith("/onboarding") && path !== "/") {
+    // Already onboarded — never keep them on the welcome/setup screen
+    if (profile?.company_id && path.startsWith("/onboarding")) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = profile.role === "admin" ? "/admin" : "/app";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (!profile?.company_id && !path.startsWith("/onboarding") && path !== "/" && !path.startsWith("/welcome")) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/onboarding";
       return NextResponse.redirect(redirectUrl);
